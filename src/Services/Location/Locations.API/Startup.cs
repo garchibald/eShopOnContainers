@@ -19,6 +19,8 @@ using System;
 using Polly;
 using MongoDB.Driver;
 using System.Threading.Tasks;
+using Microsoft.eShopOnContainers.BuildingBlocks.EventBusServiceBus;
+using Microsoft.Azure.ServiceBus;
 
 namespace Microsoft.eShopOnContainers.Services.Locations.API
 {
@@ -54,19 +56,33 @@ namespace Microsoft.eShopOnContainers.Services.Locations.API
 
             services.Configure<LocationSettings>(Configuration);
 
-            services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
+            if (Configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
-                var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
-
-                var factory = new ConnectionFactory()
+                services.AddSingleton<IServiceBusPersisterConnection>(sp =>
                 {
-                    HostName = Configuration["EventBusConnection"]
-                };
+                    var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
 
-                //TODO await connnection
+                    var serviceBusConnection = new ServiceBusConnectionStringBuilder(Configuration["EventBusConnection"]);
 
-                return new DefaultRabbitMQPersistentConnection(factory, logger);
-            });
+                    return new DefaultServiceBusPersisterConnection(serviceBusConnection, logger);
+                });
+            }
+            else
+            {
+                services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
+                {
+                    var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
+
+                    var factory = new ConnectionFactory()
+                    {
+                        HostName = Configuration["EventBusConnection"]
+                    };
+
+                    //TODO await connnection
+
+                    return new DefaultRabbitMQPersistentConnection(factory, logger);
+                });
+            }
 
             RegisterServiceBus(services);
 
