@@ -13,8 +13,22 @@
     using Microsoft.eShopOnContainers.Services.Marketing.API.Dto;
     using Microsoft.eShopOnContainers.Services.Catalog.API.ViewModel;
 
-    public class MarketingScenarios : MarketingScenariosBase
+    public class MarketingScenarios : MarketingScenariosBase, IDisposable
     {
+        public MarketingScenarios()
+        {
+            System.Diagnostics.Process.Start("docker", "run -d --name sql-integration-test -p 5433:1433 -e SA_PASSWORD=Pass@word -e ACCEPT_EULA=Y microsoft/mssql-server-linux");
+            System.Diagnostics.Process.Start("docker", "run -d --name rabbitmq-test -p 5672:5672 rabbitmq");
+            System.Diagnostics.Process.Start("docker", "run -d --name mongo-test -p 27017:27017 mongo");
+        }
+
+        public void Dispose()
+        {
+            System.Diagnostics.Process.Start("docker", "rm sql-integration-test -f");
+            System.Diagnostics.Process.Start("docker", "rm rabbitmq-test -f");
+            System.Diagnostics.Process.Start("docker", "rm mongo-test -f");
+        }
+
         [Fact]
         public async Task Set_new_user_location_and_get_location_campaign_by_user_id()
         {

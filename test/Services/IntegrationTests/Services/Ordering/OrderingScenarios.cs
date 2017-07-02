@@ -2,6 +2,7 @@
 {
     using IntegrationTests.Services.Extensions;
     using Newtonsoft.Json;
+    using System;
     using System.Net;
     using System.Net.Http;
     using System.Text;
@@ -9,9 +10,20 @@
     using WebMVC.Models;
     using Xunit;
 
-    public class OrderingScenarios
-        : OrderingScenarioBase
+    public class OrderingScenarios : OrderingScenarioBase, IDisposable
     {
+        DockerTestServices docker;
+
+        public OrderingScenarios()
+        {
+            docker = new DockerTestServices();
+        }
+
+        public void Dispose()
+        {
+            docker.Dispose();
+        }
+
         [Fact]
         public async Task Get_get_all_stored_orders_and_response_ok_status_code()
         {

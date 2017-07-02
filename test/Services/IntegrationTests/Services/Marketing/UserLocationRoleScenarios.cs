@@ -9,9 +9,21 @@
     using System.Net;
     using Microsoft.eShopOnContainers.Services.Marketing.API.Dto;
 
-    public class UserLocationRoleScenarios
-        : UserLocationRoleScenariosBase
+    public class UserLocationRoleScenarios : UserLocationRoleScenariosBase, IDisposable
     {
+        DockerTestServices docker;
+
+        public UserLocationRoleScenarios()
+        {
+            docker = new DockerTestServices();
+
+        }
+
+        public void Dispose()
+        {
+            docker.Dispose();
+        }
+
         [Fact]
         public async Task Get_get_all_user_location_rules_by_campaignId_and_response_ok_status_code()
         {

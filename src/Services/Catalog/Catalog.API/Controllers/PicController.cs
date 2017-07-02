@@ -27,14 +27,30 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
         public IActionResult GetImage(string filename)
         {
             var webRoot = _env.WebRootPath;
-            var path = Path.Combine(webRoot, filename);
+            var path = Path.Combine(webRoot, Path.GetFileName(filename));
 
-            string imageFileExtension = Path.GetExtension(filename);
+            string imageFileExtension = Path.GetExtension(Path.GetFileName(filename));
+
+            if (string.IsNullOrEmpty(imageFileExtension) && System.IO.File.Exists(path + ".png"))
+            {
+                path += ".png";
+            }
+
+            if ( !System.IO.File.Exists(path) )
+            {
+                return new NotFoundResult();
+            }
+
+            imageFileExtension = Path.GetExtension(path);
+
             string mimetype = GetImageMimeTypeFromImageFileExtension(imageFileExtension);
 
             var buffer = System.IO.File.ReadAllBytes(path);
 
-            return File(buffer, mimetype);
+            return new FileContentResult(buffer, mimetype)
+            {
+                FileDownloadName = Path.GetFileName(path)
+            };
         }
 
         private string GetImageMimeTypeFromImageFileExtension(string extension)
@@ -43,29 +59,29 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
 
             switch (extension)
             {
-                case "png":
+                case ".png":
                     mimetype = "image/png";
                     break;
-                case "gif":
+                case ".gif":
                     mimetype = "image/gif";
                     break;
-                case "jpg":
-                case "jpeg":
+                case ".jpg":
+                case ".jpeg":
                     mimetype = "image/jpeg";
                     break;
-                case "bmp":
+                case ".bmp":
                     mimetype = "image/bmp";
                     break;
-                case "tiff":
+                case ".tiff":
                     mimetype = "image/tiff";
                     break;
-                case "wmf":
+                case ".wmf":
                     mimetype = "image/wmf";
                     break;
-                case "jp2":
+                case ".jp2":
                     mimetype = "image/jp2";
                     break;
-                case "svg":
+                case ".svg":
                     mimetype = "image/svg+xml";
                     break;
                 default:

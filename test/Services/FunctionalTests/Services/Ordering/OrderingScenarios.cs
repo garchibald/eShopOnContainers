@@ -14,8 +14,22 @@ using Xunit;
 
 namespace FunctionalTests.Services.Ordering
 {
-    public class OrderingScenarios : OrderingScenariosBase
-    {        
+    public class OrderingScenarios : OrderingScenariosBase, IDisposable
+    {
+        public OrderingScenarios()
+        {
+            System.Diagnostics.Process.Start("docker", "run -d --name sql-integration-test -p 5433:1433 -e SA_PASSWORD=Pass@word -e ACCEPT_EULA=Y microsoft/mssql-server-linux");
+            System.Diagnostics.Process.Start("docker", "run -d --name rabbitmq-test -p 5672:5672 rabbitmq");
+            System.Diagnostics.Process.Start("docker", "run -d --name redis-test -p 6379:6379 redis");
+        }
+
+        public void Dispose()
+        {
+            System.Diagnostics.Process.Start("docker", "rm sql-integration-test -f");
+            System.Diagnostics.Process.Start("docker", "rm rabbitmq-test -f");
+            System.Diagnostics.Process.Start("docker", "rm redis-test -f");
+        }
+
         [Fact]
         public async Task Cancel_basket_and_check_order_status_cancelled()
         {

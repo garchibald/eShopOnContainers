@@ -10,9 +10,20 @@ using Xunit;
 
 namespace IntegrationTests.Services.Basket
 {
-    public class BasketScenarios
-        : BasketScenarioBase
+    public class BasketScenarios : BasketScenarioBase, IDisposable
     {
+        DockerTestServices docker;
+
+        public BasketScenarios()
+        {
+            docker = new DockerTestServices();   
+        }
+
+        public void Dispose()
+        {
+            docker.Dispose();
+        }
+
         [Fact]
         public async Task Post_basket_and_response_ok_status_code()
         {

@@ -1,11 +1,23 @@
 ﻿namespace IntegrationTests.Services.Catalog
 {
+    using System;
     using System.Threading.Tasks;
     using Xunit;
 
-    public class CatalogScenarios
-        : CatalogScenarioBase
+    public class CatalogScenarios : CatalogScenarioBase, IDisposable
     {
+        DockerTestServices docker;
+
+        public CatalogScenarios()
+        {
+            docker = new DockerTestServices();
+        }
+
+        public void Dispose()
+        {
+            docker.Dispose();
+        }
+
         [Fact]
         public async Task Get_get_all_catalogitems_and_response_ok_status_code()
         {

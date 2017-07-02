@@ -9,15 +9,23 @@ namespace IntegrationTests.Services.Basket
     using System.Threading.Tasks;
     using Xunit;
     using Moq;
+    using System;
 
-
-    public class RedisBasketRepositoryTests
+    public class RedisBasketRepositoryTests : IDisposable
     {
+        DockerTestServices docker;
+
         private Mock<IOptionsSnapshot<BasketSettings>> _optionsMock;
 
         public RedisBasketRepositoryTests()
         {
+            docker = new DockerTestServices();
             _optionsMock = new Mock<IOptionsSnapshot<BasketSettings>>();
+        }
+
+        public void Dispose()
+        {
+            docker.Dispose();
         }
 
         [Fact]

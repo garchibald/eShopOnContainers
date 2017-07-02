@@ -33,7 +33,19 @@ do
     echo -e "\e[33m\tRestoring project"
     dotnet restore
     echo -e "\e[33m\tBuilding and publishing projects"
-    dotnet publish -o obj/Docker/publish
+	
+	counter=0
+	until [ -n "$(ls -A obj/Docker/publish/)" ]
+	do
+		dotnet publish -o obj/Docker/publish
+		
+		if [[ "$counter" -gt 20 ]]; then
+			echo "Counter: $counter times reached; Exiting loop!"
+			exit 1
+		else
+			counter=$((counter+1))
+		fi
+	done
     popd
 done
 

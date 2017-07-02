@@ -15,13 +15,29 @@ using System.Threading;
 
 namespace FunctionalTests.Services
 {
-    public class IntegrationEventsScenarios
+    public class IntegrationEventsScenarios : IDisposable
     {
+        public IntegrationEventsScenarios()
+        {
+            System.Diagnostics.Process.Start("docker", "run -d --name sql-integration-test -p 5433:1433 -e SA_PASSWORD=Pass@word -e ACCEPT_EULA=Y microsoft/mssql-server-linux");
+            System.Diagnostics.Process.Start("docker", "run -d --name rabbitmq-test -p 5672:5672 rabbitmq");
+            System.Diagnostics.Process.Start("docker", "run -d --name redis-test -p 6379:6379 redis");
+        }
+
+        public void Dispose()
+        {
+            System.Diagnostics.Process.Start("docker", "rm sql-integration-test -f");
+            System.Diagnostics.Process.Start("docker", "rm rabbitmq-test -f");
+            System.Diagnostics.Process.Start("docker", "rm redis-test -f");
+        }
+
         [Fact]
         public async Task Post_update_product_price_and_catalog_and_basket_list_modified()
         {
             decimal priceModification = 0.15M;
             string userId = "JohnId";
+
+
 
             using (var catalogServer = new CatalogScenariosBase().CreateServer())
             using (var basketServer = new BasketScenariosBase().CreateServer())
@@ -125,5 +141,7 @@ namespace FunctionalTests.Services
             }
             return basket;
         }
+
+        
     }
 }

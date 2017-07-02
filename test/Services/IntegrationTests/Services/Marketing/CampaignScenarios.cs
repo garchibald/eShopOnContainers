@@ -9,9 +9,21 @@
     using System.Net;
     using Microsoft.eShopOnContainers.Services.Marketing.API.Dto;
 
-    public class CampaignScenarios
-        : CampaignScenarioBase
+    public class CampaignScenarios : CampaignScenarioBase, IDisposable
     {
+        DockerTestServices docker;
+
+        public CampaignScenarios()
+        {
+            docker = new DockerTestServices();
+        }
+
+        public void Dispose()
+        {
+            docker.Dispose();
+        }
+
+
         [Fact]
         public async Task Get_get_all_campaigns_and_response_ok_status_code()
         {

@@ -64,7 +64,10 @@
 
                 await context.SaveChangesAsync();
 
-                GetCatalogItemPictures(contentRootPath, picturePath);
+                if (useCustomizationData)
+                {
+                    GetCatalogItemPictures(contentRootPath, picturePath);
+                }                
             }
         }
 
@@ -371,7 +374,7 @@
                 file.Delete();
             }
 
-            string zipFileCatalogItemPictures = Path.Combine(contentRootPath, "Setup", "CatalogItems.zip");
+            string zipFileCatalogItemPictures = Path.Combine(contentRootPath, "Setup", "Catalogitems.zip");
             ZipFile.ExtractToDirectory(zipFileCatalogItemPictures, picturePath);
         }
     }

@@ -3,5 +3,5 @@
   "ExternalCatalogBaseUrl": "http://localhost:5101",
   "IdentityUrl": "http://localhost:5105",
   "isTest": "true",
-  "EventBusConnection": "localhost"
+  "EventBusConnection": "localhost:5672"
 }

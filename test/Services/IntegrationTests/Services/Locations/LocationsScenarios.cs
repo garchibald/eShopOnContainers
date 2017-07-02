@@ -11,9 +11,20 @@ using System;
 
 namespace IntegrationTests.Services.Locations
 {
-    public class LocationsScenarios
-        : LocationsScenarioBase
+    public class LocationsScenarios : LocationsScenarioBase, IDisposable
     {
+        DockerTestServices docker;
+
+        public LocationsScenarios()
+        {
+            docker = new DockerTestServices();
+        }
+
+        public void Dispose()
+        {
+            docker.Dispose();
+        }
+
         [Fact]
         public async Task Set_new_user_seattle_location_response_ok_status_code()
         {
