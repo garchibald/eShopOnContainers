@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\IntegrationTests\DockerTestServices.cs" Link="DockerTestServices.cs" />
     <Compile Include="Services\Location\LocationsScenariosBase.cs" />
     <Compile Include="Services\Location\LocationsTestsStartup.cs" />
     <Compile Include="Services\Marketing\CampaignScenariosBase.cs" />
