@@ -11,5 +11,7 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
         bool TryConnect();
 
         IModel CreateModel();
+
+        System.Collections.Concurrent.ConcurrentDictionary<string, string> State { get; }
     }
 }

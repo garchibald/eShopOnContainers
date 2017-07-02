@@ -7,6 +7,7 @@ using RabbitMQ.Client.Exceptions;
 using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Collections.Concurrent;
 
 namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
 {
@@ -15,6 +16,8 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
     {
         private readonly IConnectionFactory _connectionFactory;
         private readonly ILogger<DefaultRabbitMQPersistentConnection> _logger;
+
+        public static System.Collections.Concurrent.ConcurrentDictionary<string, string> State = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
 
         IConnection _connection;
         bool _disposed;
@@ -32,6 +35,12 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
             get
             {
                 return _connection != null && _connection.IsOpen && !_disposed;
+            }
+        }
+
+        ConcurrentDictionary<string, string> IRabbitMQPersistentConnection.State {
+            get {
+                return State;
             }
         }
 
@@ -63,6 +72,16 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
 
         public bool TryConnect()
         {
+            if (State.ContainsKey("Exit"))
+            {
+                _logger.LogWarning("Found exit condition closing rabbitmq events...");
+                // We are exiting lets clean up events
+                _connection.ConnectionShutdown -= OnConnectionShutdown;
+                _connection.CallbackException -= OnCallbackException;
+                _connection.ConnectionBlocked -= OnConnectionBlocked;
+                return false;
+            }
+
             _logger.LogInformation("RabbitMQ Client is trying to connect");
 
             lock (sync_root)

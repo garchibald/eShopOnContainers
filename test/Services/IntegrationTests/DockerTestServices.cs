@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -11,13 +12,15 @@ namespace IntegrationTests
     {
         public DockerTestServices()
         {
+            string lastExit;
+            DefaultRabbitMQPersistentConnection.State.TryRemove("Exit", out lastExit);
             RemoveContainers();
             RunContainers();
         }
 
-
         public void Dispose()
         {
+            DefaultRabbitMQPersistentConnection.State.TryAdd("Exit", DateTime.Now.ToString());
             RemoveContainers();
         }
 

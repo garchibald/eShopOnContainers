@@ -49,7 +49,14 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
         {
             if (!_persistentConnection.IsConnected)
             {
-                _persistentConnection.TryConnect();
+                if ( !_persistentConnection.TryConnect() )
+                {
+                    if (_persistentConnection.State.ContainsKey("Exit"))
+                    {
+                        _logger.LogWarning("Found exit condition, removing subscriptions events...");
+                        _subsManager.OnEventRemoved -= SubsManager_OnEventRemoved;
+                    }
+                }
             }
 
             using (var channel = _persistentConnection.CreateModel())
