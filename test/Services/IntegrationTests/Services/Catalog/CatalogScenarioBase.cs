@@ -5,6 +5,7 @@ namespace IntegrationTests.Services.Catalog
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.eShopOnContainers.Services.Catalog.API;
+    using System;
     using System.IO;
 
     public class CatalogScenarioBase

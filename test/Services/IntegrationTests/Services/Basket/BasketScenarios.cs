@@ -10,59 +10,56 @@ using Xunit;
 
 namespace IntegrationTests.Services.Basket
 {
-    public class BasketScenarios : BasketScenarioBase, IDisposable
+    public class BasketScenarios : BasketScenarioBase
     {
-        DockerTestServices docker;
-
-        public BasketScenarios()
-        {
-            docker = new DockerTestServices();   
-        }
-
-        public void Dispose()
-        {
-            docker.Dispose();
-        }
-
         [Fact]
         public async Task Post_basket_and_response_ok_status_code()
         {
-            using (var server = CreateServer())
-            {               
-                var content = new StringContent(BuildBasket(), UTF8Encoding.UTF8, "application/json");
-                var response = await server.CreateClient()
-                   .PostAsync(Post.Basket, content);
+            using (var docker = new DockerTestServices())
+            {
+                using (var server = CreateServer())
+                {
+                    var content = new StringContent(BuildBasket(), UTF8Encoding.UTF8, "application/json");
+                    var response = await server.CreateClient()
+                       .PostAsync(Post.Basket, content);
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
         [Fact]
         public async Task Get_basket_and_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var response = await server.CreateClient()
-                   .GetAsync(Get.GetBasket(1));
+                using (var server = CreateServer())
+                {
+                    var response = await server.CreateClient()
+                       .GetAsync(Get.GetBasket(1));
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
         [Fact]
         public async Task Send_Checkout_basket_and_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var contentBasket = new StringContent(BuildBasket(), UTF8Encoding.UTF8, "application/json");
-                await server.CreateClient()
-                   .PostAsync(Post.Basket, contentBasket);
+                using (var server = CreateServer())
+                {
+                    var contentBasket = new StringContent(BuildBasket(), UTF8Encoding.UTF8, "application/json");
+                    await server.CreateClient()
+                       .PostAsync(Post.Basket, contentBasket);
 
-                var contentCheckout = new StringContent(BuildCheckout(), UTF8Encoding.UTF8, "application/json");
-                var response = await server.CreateIdempotentClient()
-                   .PostAsync(Post.CheckoutOrder, contentCheckout);
+                    var contentCheckout = new StringContent(BuildCheckout(), UTF8Encoding.UTF8, "application/json");
+                    var response = await server.CreateIdempotentClient()
+                       .PostAsync(Post.CheckoutOrder, contentCheckout);
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 

@@ -3,6 +3,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.eShopOnContainers.Services.Ordering.API;
+    using System;
     using System.IO;
 
     public class OrderingScenarioBase

@@ -11,36 +11,32 @@ namespace IntegrationTests.Services.Basket
     using Moq;
     using System;
 
-    public class RedisBasketRepositoryTests : IDisposable
+    public class RedisBasketRepositoryTests
     {
-        DockerTestServices docker;
-
         private Mock<IOptionsSnapshot<BasketSettings>> _optionsMock;
 
         public RedisBasketRepositoryTests()
         {
-            docker = new DockerTestServices();
             _optionsMock = new Mock<IOptionsSnapshot<BasketSettings>>();
         }
 
-        public void Dispose()
-        {
-            docker.Dispose();
-        }
 
         [Fact]
         public async Task UpdateBasket_return_and_add_basket()
         {
-            var redisBasketRepository = BuildBasketRepository();
+            RedisBasketRepository redisBasketRepository = null;
 
-            var basket = await redisBasketRepository.UpdateBasketAsync(new CustomerBasket("customerId")
+            using (var docker = new DockerTestServices())
             {
-                BuyerId = "buyerId",
-                Items = BuildBasketItems()
-            });
+                var basket = await redisBasketRepository.UpdateBasketAsync(new CustomerBasket("customerId")
+                {
+                    BuyerId = "buyerId",
+                    Items = BuildBasketItems()
+                });
 
-            Assert.NotNull(basket);
-            Assert.Equal(1, basket.Items.Count);
+                Assert.NotNull(basket);
+                Assert.Equal(1, basket.Items.Count);
+            }
         }
 
         [Fact]
@@ -64,11 +60,28 @@ namespace IntegrationTests.Services.Basket
 
         RedisBasketRepository BuildBasketRepository()
         {
-            var loggerFactory = new LoggerFactory();            
-            var basketSettings = new BasketSettings() { ConnectionString = "127.0.0.1" };
-            _optionsMock.Setup(x => x.Value).Returns(basketSettings);
-            
-            return new RedisBasketRepository(_optionsMock.Object, loggerFactory);
+            var count = 0;
+            while ( true )
+            {
+                try
+                {
+                    var loggerFactory = new LoggerFactory();
+                    var basketSettings = new BasketSettings() { ConnectionString = "127.0.0.1" };
+                    _optionsMock.Setup(x => x.Value).Returns(basketSettings);
+
+                    return new RedisBasketRepository(_optionsMock.Object, loggerFactory);
+                }
+                catch (Exception ex)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                    count++;
+
+                    if ( count == 20)
+                    {
+                        throw;
+                    }
+                }
+            }
         }
 
         List<BasketItem> BuildBasketItems()

@@ -37,8 +37,6 @@ namespace FunctionalTests.Services
             decimal priceModification = 0.15M;
             string userId = "JohnId";
 
-
-
             using (var catalogServer = new CatalogScenariosBase().CreateServer())
             using (var basketServer = new BasketScenariosBase().CreateServer())
             {

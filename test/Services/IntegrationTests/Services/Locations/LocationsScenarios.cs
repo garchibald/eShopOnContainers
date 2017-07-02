@@ -11,129 +11,130 @@ using System;
 
 namespace IntegrationTests.Services.Locations
 {
-    public class LocationsScenarios : LocationsScenarioBase, IDisposable
+    public class LocationsScenarios : LocationsScenarioBase
     {
-        DockerTestServices docker;
-
-        public LocationsScenarios()
-        {
-            docker = new DockerTestServices();
-        }
-
-        public void Dispose()
-        {
-            docker.Dispose();
-        }
 
         [Fact]
         public async Task Set_new_user_seattle_location_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var userId = "4611ce3f-380d-4db5-8d76-87a8689058ed";
-                var content = new StringContent(BuildLocationsRequest(-122.315752, 47.604610), UTF8Encoding.UTF8, "application/json");
+                using (var server = CreateServer())
+                {
+                    var userId = "4611ce3f-380d-4db5-8d76-87a8689058ed";
+                    var content = new StringContent(BuildLocationsRequest(-122.315752, 47.604610), UTF8Encoding.UTF8, "application/json");
 
-                // Expected result
-                var expectedLocation = "SEAT";
+                    // Expected result
+                    var expectedLocation = "SEAT";
 
-                // Act
-                var response = await server.CreateClient()
-                    .PostAsync(Post.AddNewLocation, content);
+                    // Act
+                    var response = await server.CreateClient()
+                        .PostAsync(Post.AddNewLocation, content);
 
-                var userLocationResponse = await server.CreateClient()
-                    .GetAsync(Get.UserLocationBy(userId));
+                    var userLocationResponse = await server.CreateClient()
+                        .GetAsync(Get.UserLocationBy(userId));
 
-                var responseBody = await userLocationResponse.Content.ReadAsStringAsync();
-                var userLocation = JsonConvert.DeserializeObject<UserLocation>(responseBody);
+                    var responseBody = await userLocationResponse.Content.ReadAsStringAsync();
+                    var userLocation = JsonConvert.DeserializeObject<UserLocation>(responseBody);
 
-                var locationResponse = await server.CreateClient()
-                    .GetAsync(Get.LocationBy(userLocation.LocationId));
+                    var locationResponse = await server.CreateClient()
+                        .GetAsync(Get.LocationBy(userLocation.LocationId));
 
-                responseBody = await locationResponse.Content.ReadAsStringAsync();
-                var location = JsonConvert.DeserializeObject<Location>(responseBody);
+                    responseBody = await locationResponse.Content.ReadAsStringAsync();
+                    var location = JsonConvert.DeserializeObject<Location>(responseBody);
 
-                // Assert
-                Assert.Equal(expectedLocation, location.Code);
+                    // Assert
+                    Assert.Equal(expectedLocation, location.Code);
+                }
             }
         }
 
         [Fact]
         public async Task Set_new_user_readmond_location_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var userId = "4611ce3f-380d-4db5-8d76-87a8689058ed";
-                var content = new StringContent(BuildLocationsRequest(-122.119998, 47.690876), UTF8Encoding.UTF8, "application/json");
+                using (var server = CreateServer())
+                {
+                    var userId = "4611ce3f-380d-4db5-8d76-87a8689058ed";
+                    var content = new StringContent(BuildLocationsRequest(-122.119998, 47.690876), UTF8Encoding.UTF8, "application/json");
 
-                // Expected result
-                var expectedLocation = "REDM";
+                    // Expected result
+                    var expectedLocation = "REDM";
 
-                // Act
-                var response = await server.CreateClient()
-                    .PostAsync(Post.AddNewLocation, content);
+                    // Act
+                    var response = await server.CreateClient()
+                        .PostAsync(Post.AddNewLocation, content);
 
-                var userLocationResponse = await server.CreateClient()
-                    .GetAsync(Get.UserLocationBy(userId));
+                    var userLocationResponse = await server.CreateClient()
+                        .GetAsync(Get.UserLocationBy(userId));
 
-                var responseBody = await userLocationResponse.Content.ReadAsStringAsync();
-                var userLocation = JsonConvert.DeserializeObject<UserLocation>(responseBody);
+                    var responseBody = await userLocationResponse.Content.ReadAsStringAsync();
+                    var userLocation = JsonConvert.DeserializeObject<UserLocation>(responseBody);
 
-                var locationResponse = await server.CreateClient()
-                    .GetAsync(Get.LocationBy(userLocation.LocationId));
+                    var locationResponse = await server.CreateClient()
+                        .GetAsync(Get.LocationBy(userLocation.LocationId));
 
-                responseBody = await locationResponse.Content.ReadAsStringAsync();
-                var location = JsonConvert.DeserializeObject<Location>(responseBody);
+                    responseBody = await locationResponse.Content.ReadAsStringAsync();
+                    var location = JsonConvert.DeserializeObject<Location>(responseBody);
 
-                // Assert
-                Assert.Equal(expectedLocation, location.Code);
+                    // Assert
+                    Assert.Equal(expectedLocation, location.Code);
+                }
             }
         }
 
         [Fact]
         public async Task Set_new_user_Washington_location_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var userId = "4611ce3f-380d-4db5-8d76-87a8689058ed";
-                var content = new StringContent(BuildLocationsRequest(-121.040360, 48.091631), UTF8Encoding.UTF8, "application/json");
+                using (var server = CreateServer())
+                {
+                    var userId = "4611ce3f-380d-4db5-8d76-87a8689058ed";
+                    var content = new StringContent(BuildLocationsRequest(-121.040360, 48.091631), UTF8Encoding.UTF8, "application/json");
 
-                // Expected result
-                var expectedLocation = "WHT";
+                    // Expected result
+                    var expectedLocation = "WHT";
 
-                // Act
-                var response = await server.CreateClient()
-                    .PostAsync(Post.AddNewLocation, content);
+                    // Act
+                    var response = await server.CreateClient()
+                        .PostAsync(Post.AddNewLocation, content);
 
-                var userLocationResponse = await server.CreateClient()
-                    .GetAsync(Get.UserLocationBy(userId));
+                    var userLocationResponse = await server.CreateClient()
+                        .GetAsync(Get.UserLocationBy(userId));
 
-                var responseBody = await userLocationResponse.Content.ReadAsStringAsync();
-                var userLocation = JsonConvert.DeserializeObject<UserLocation>(responseBody);
+                    var responseBody = await userLocationResponse.Content.ReadAsStringAsync();
+                    var userLocation = JsonConvert.DeserializeObject<UserLocation>(responseBody);
 
-                var locationResponse = await server.CreateClient()
-                    .GetAsync(Get.LocationBy(userLocation.LocationId));
+                    var locationResponse = await server.CreateClient()
+                        .GetAsync(Get.LocationBy(userLocation.LocationId));
 
-                responseBody = await locationResponse.Content.ReadAsStringAsync();
-                var location = JsonConvert.DeserializeObject<Location>(responseBody);
+                    responseBody = await locationResponse.Content.ReadAsStringAsync();
+                    var location = JsonConvert.DeserializeObject<Location>(responseBody);
 
-                // Assert
-                Assert.Equal(expectedLocation, location.Code);
+                    // Assert
+                    Assert.Equal(expectedLocation, location.Code);
+                }
             }
         }
 
         [Fact]
         public async Task Get_all_locations_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var response = await server.CreateClient()
-                    .GetAsync(Get.Locations);                
+                using (var server = CreateServer())
+                {
+                    var response = await server.CreateClient()
+                        .GetAsync(Get.Locations);
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-                var locations = JsonConvert.DeserializeObject<List<Location>>(responseBody);
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    var locations = JsonConvert.DeserializeObject<List<Location>>(responseBody);
 
-                // Assert
-                Assert.NotEmpty(locations);
+                    // Assert
+                    Assert.NotEmpty(locations);
+                }
             }
         }
 

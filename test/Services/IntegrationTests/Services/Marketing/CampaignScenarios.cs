@@ -9,119 +9,124 @@
     using System.Net;
     using Microsoft.eShopOnContainers.Services.Marketing.API.Dto;
 
-    public class CampaignScenarios : CampaignScenarioBase, IDisposable
+    public class CampaignScenarios : CampaignScenarioBase
     {
-        DockerTestServices docker;
-
-        public CampaignScenarios()
-        {
-            docker = new DockerTestServices();
-        }
-
-        public void Dispose()
-        {
-            docker.Dispose();
-        }
-
-
         [Fact]
         public async Task Get_get_all_campaigns_and_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var response = await server.CreateClient()
-                    .GetAsync(Get.Campaigns);
+                using (var server = CreateServer())
+                {
+                    var response = await server.CreateClient()
+                        .GetAsync(Get.Campaigns);
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
         [Fact]
         public async Task Get_get_campaign_by_id_and_response_ok_status_code()
         {
-            var campaignId = 1;
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var response = await server.CreateClient()
-                    .GetAsync(Get.CampaignBy(campaignId));
+                var campaignId = 1;
+                using (var server = CreateServer())
+                {
+                    var response = await server.CreateClient()
+                        .GetAsync(Get.CampaignBy(campaignId));
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
         [Fact]
         public async Task Get_get_campaign_by_id_and_response_not_found_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var response = await server.CreateClient()
-                    .GetAsync(Get.CampaignBy(int.MaxValue));
+                using (var server = CreateServer())
+                {
+                    var response = await server.CreateClient()
+                        .GetAsync(Get.CampaignBy(int.MaxValue));
 
-                Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+                    Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+                }
             }
         }
 
         [Fact]
         public async Task Post_add_new_campaign_and_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var fakeCampaignDto = GetFakeCampaignDto();
-                var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
-                var response = await server.CreateClient()
-                    .PostAsync(Post.AddNewCampaign, content);
+                using (var server = CreateServer())
+                {
+                    var fakeCampaignDto = GetFakeCampaignDto();
+                    var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
+                    var response = await server.CreateClient()
+                        .PostAsync(Post.AddNewCampaign, content);
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
         [Fact]
         public async Task Delete_delete_campaign_and_response_not_content_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var fakeCampaignDto = GetFakeCampaignDto();
-                var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
-
-                //add campaign
-                var campaignResponse = await server.CreateClient()
-                    .PostAsync(Post.AddNewCampaign, content);
-
-                if (int.TryParse(campaignResponse.Headers.Location.Segments[4], out int id))
+                using (var server = CreateServer())
                 {
-                    var response = await server.CreateClient()
-                    .DeleteAsync(Delete.CampaignBy(id));
+                    var fakeCampaignDto = GetFakeCampaignDto();
+                    var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
 
-                    Assert.True(response.StatusCode == HttpStatusCode.NoContent);
+                    //add campaign
+                    var campaignResponse = await server.CreateClient()
+                        .PostAsync(Post.AddNewCampaign, content);
+
+                    if (int.TryParse(campaignResponse.Headers.Location.Segments[4], out int id))
+                    {
+                        var response = await server.CreateClient()
+                        .DeleteAsync(Delete.CampaignBy(id));
+
+                        Assert.True(response.StatusCode == HttpStatusCode.NoContent);
+                    }
+
+                    campaignResponse.EnsureSuccessStatusCode();
                 }
-
-                campaignResponse.EnsureSuccessStatusCode();
             }
         }
 
         [Fact]
         public async Task Put_update_campaign_and_response_not_content_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var fakeCampaignDto = GetFakeCampaignDto();
-                var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
-
-                //add campaign
-                var campaignResponse = await server.CreateClient()
-                    .PostAsync(Post.AddNewCampaign, content);
-
-                if (int.TryParse(campaignResponse.Headers.Location.Segments[4], out int id))
+                using (var server = CreateServer())
                 {
-                    fakeCampaignDto.Description = "FakeCampaignUpdatedDescription";
-                    content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
-                    var response = await server.CreateClient()
-                    .PutAsync(Put.CampaignBy(id), content);
+                    var fakeCampaignDto = GetFakeCampaignDto();
+                    var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
 
-                    Assert.True(response.StatusCode == HttpStatusCode.Created);
+                    //add campaign
+                    var campaignResponse = await server.CreateClient()
+                        .PostAsync(Post.AddNewCampaign, content);
+
+                    if (int.TryParse(campaignResponse.Headers.Location.Segments[4], out int id))
+                    {
+                        fakeCampaignDto.Description = "FakeCampaignUpdatedDescription";
+                        content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
+                        var response = await server.CreateClient()
+                        .PutAsync(Put.CampaignBy(id), content);
+
+                        Assert.True(response.StatusCode == HttpStatusCode.Created);
+                    }
+
+                    campaignResponse.EnsureSuccessStatusCode();
                 }
-
-                campaignResponse.EnsureSuccessStatusCode();
             }
         }
 

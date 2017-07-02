@@ -16,6 +16,9 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Reflection;
 using System;
+using Polly;
+using MongoDB.Driver;
+using System.Threading.Tasks;
 
 namespace Microsoft.eShopOnContainers.Services.Locations.API
 {
@@ -59,6 +62,8 @@ namespace Microsoft.eShopOnContainers.Services.Locations.API
                 {
                     HostName = Configuration["EventBusConnection"]
                 };
+
+                //TODO await connnection
 
                 return new DefaultRabbitMQPersistentConnection(factory, logger);
             });
@@ -119,8 +124,7 @@ namespace Microsoft.eShopOnContainers.Services.Locations.API
                   c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
               });
 
-            LocationsContextSeed.SeedAsync(app, loggerFactory)
-                .Wait();
+            WaitForMongoAvailabilityAsync(loggerFactory, app, 10).Wait();
         }
 
         protected virtual void ConfigureAuth(IApplicationBuilder app)
@@ -138,6 +142,29 @@ namespace Microsoft.eShopOnContainers.Services.Locations.API
         {
             services.AddSingleton<IEventBus, EventBusRabbitMQ>();
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
-        }        
+        }
+
+        private async Task WaitForMongoAvailabilityAsync(ILoggerFactory loggerFactory, IApplicationBuilder app, int retries = 0)
+        {
+            var logger = loggerFactory.CreateLogger(nameof(Startup));
+            var policy = CreatePolicy(retries, logger, nameof(WaitForMongoAvailabilityAsync));
+            await policy.ExecuteAsync(async () =>
+            {
+                await LocationsContextSeed.SeedAsync(app, loggerFactory);
+            });
+        }
+
+        private Policy CreatePolicy(int retries, ILogger logger, string prefix)
+        {
+            return Policy.Handle<MongoConnectionException>().
+                WaitAndRetryAsync(
+                    retryCount: retries,
+                    sleepDurationProvider: retry => TimeSpan.FromSeconds(Math.Pow(2, retry)),
+                    onRetry: (exception, timeSpan, retry, ctx) =>
+                    {
+                        logger.LogTrace($"[{prefix}] Exception {exception.GetType().Name} with message ${exception.Message} detected on attempt {retry} of {retries}");
+                    }
+                );
+        }
     }
 }

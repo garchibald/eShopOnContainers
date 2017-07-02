@@ -26,6 +26,9 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API
     using Polly;
     using System.Threading.Tasks;
     using System.Data.SqlClient;
+    using Microsoft.eShopOnContainers.BuildingBlocks.EventBusServiceBus;
+    using Microsoft.Extensions.Options;
+    using Microsoft.Azure.ServiceBus;
 
     public class Startup
     {
@@ -76,17 +79,32 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API
                 //Check Client vs. Server evaluation: https://docs.microsoft.com/en-us/ef/core/querying/client-eval
             });
 
-            services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
+            if (Configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
-                var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
-
-                var factory = new ConnectionFactory()
+                services.AddSingleton<IServiceBusPersisterConnection>(sp =>
                 {
-                    HostName = Configuration["EventBusConnection"]
-                };
+                    var settings = sp.GetRequiredService<IOptions<MarketingSettings>>().Value;
+                    var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
 
-                return new DefaultRabbitMQPersistentConnection(factory, logger);
-            });
+                    var serviceBusConnection = new ServiceBusConnectionStringBuilder(Configuration["EventBusConnection"]);
+
+                    return new DefaultServiceBusPersisterConnection(serviceBusConnection, logger);
+                });
+            }
+            else
+            {
+                services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
+                {
+                    var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
+
+                    var factory = new ConnectionFactory()
+                    {
+                        HostName = Configuration["EventBusConnection"]
+                    };
+
+                    return new DefaultRabbitMQPersistentConnection(factory, logger);
+                });
+            }
 
             RegisterServiceBus(services);
 
@@ -192,7 +210,7 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API
             return Policy.Handle<SqlException>().
                 WaitAndRetryAsync(
                     retryCount: retries,
-                    sleepDurationProvider: retry => TimeSpan.FromSeconds(5),
+                    sleepDurationProvider: retry => TimeSpan.FromSeconds(Math.Pow(2, retry)),
                     onRetry: (exception, timeSpan, retry, ctx) =>
                     {
                         logger.LogTrace($"[{prefix}] Exception {exception.GetType().Name} with message ${exception.Message} detected on attempt {retry} of {retries}");

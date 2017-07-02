@@ -10,55 +10,53 @@
     using WebMVC.Models;
     using Xunit;
 
-    public class OrderingScenarios : OrderingScenarioBase, IDisposable
+    public class OrderingScenarios : OrderingScenarioBase
     {
-        DockerTestServices docker;
-
-        public OrderingScenarios()
-        {
-            docker = new DockerTestServices();
-        }
-
-        public void Dispose()
-        {
-            docker.Dispose();
-        }
 
         [Fact]
         public async Task Get_get_all_stored_orders_and_response_ok_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var response = await server.CreateClient()
-                    .GetAsync(Get.Orders);
+                using (var server = CreateServer())
+                {
+                    var response = await server.CreateClient()
+                        .GetAsync(Get.Orders);
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
         [Fact]
         public async Task Cancel_order_no_order_created_response_bad_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var content = new StringContent(BuildOrder(), UTF8Encoding.UTF8, "application/json");
-                var response = await server.CreateIdempotentClient()
-                    .PutAsync(Put.CancelOrder, content);
+                using (var server = CreateServer())
+                {
+                    var content = new StringContent(BuildOrder(), UTF8Encoding.UTF8, "application/json");
+                    var response = await server.CreateIdempotentClient()
+                        .PutAsync(Put.CancelOrder, content);
 
-                Assert.Equal(response.StatusCode, HttpStatusCode.InternalServerError);
+                    Assert.Equal(response.StatusCode, HttpStatusCode.InternalServerError);
+                }
             }
         }
 
         [Fact]
         public async Task Ship_order_no_order_created_response_bad_status_code()
         {
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var content = new StringContent(BuildOrder(), UTF8Encoding.UTF8, "application/json");
-                var response = await server.CreateIdempotentClient()
-                    .PutAsync(Put.ShipOrder, content);
+                using (var server = CreateServer())
+                {
+                    var content = new StringContent(BuildOrder(), UTF8Encoding.UTF8, "application/json");
+                    var response = await server.CreateIdempotentClient()
+                        .PutAsync(Put.ShipOrder, content);
 
-                Assert.Equal(response.StatusCode, HttpStatusCode.InternalServerError);
+                    Assert.Equal(response.StatusCode, HttpStatusCode.InternalServerError);
+                }
             }
         }
 

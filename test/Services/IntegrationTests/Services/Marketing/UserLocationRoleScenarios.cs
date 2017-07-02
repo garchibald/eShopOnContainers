@@ -9,32 +9,22 @@
     using System.Net;
     using Microsoft.eShopOnContainers.Services.Marketing.API.Dto;
 
-    public class UserLocationRoleScenarios : UserLocationRoleScenariosBase, IDisposable
+    public class UserLocationRoleScenarios : UserLocationRoleScenariosBase
     {
-        DockerTestServices docker;
-
-        public UserLocationRoleScenarios()
-        {
-            docker = new DockerTestServices();
-
-        }
-
-        public void Dispose()
-        {
-            docker.Dispose();
-        }
-
         [Fact]
         public async Task Get_get_all_user_location_rules_by_campaignId_and_response_ok_status_code()
         {
             var campaignId = 1;
 
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var response = await server.CreateClient()
-                    .GetAsync(Get.UserLocationRulesByCampaignId(campaignId));
+                using (var server = CreateServer())
+                {
+                    var response = await server.CreateClient()
+                        .GetAsync(Get.UserLocationRulesByCampaignId(campaignId));
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
@@ -43,14 +33,17 @@
         {
             var campaignId = 1;
 
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var fakeCampaignDto = GetFakeUserLocationRuleDto();
-                var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
-                var response = await server.CreateClient()
-                    .PostAsync(Post.AddNewuserLocationRule(campaignId), content);
+                using (var server = CreateServer())
+                {
+                    var fakeCampaignDto = GetFakeUserLocationRuleDto();
+                    var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
+                    var response = await server.CreateClient()
+                        .PostAsync(Post.AddNewuserLocationRule(campaignId), content);
 
-                response.EnsureSuccessStatusCode();
+                    response.EnsureSuccessStatusCode();
+                }
             }
         }
 
@@ -59,24 +52,27 @@
         {
             var campaignId = 1;
 
-            using (var server = CreateServer())
+            using (var docker = new DockerTestServices())
             {
-                var fakeCampaignDto = GetFakeUserLocationRuleDto();
-                var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
-
-                //add user location role
-                var campaignResponse = await server.CreateClient()
-                    .PostAsync(Post.AddNewuserLocationRule(campaignId), content);
-
-                if (int.TryParse(campaignResponse.Headers.Location.Segments[6], out int userLocationRuleId))
+                using (var server = CreateServer())
                 {
-                    var response = await server.CreateClient()
-                    .DeleteAsync(Delete.UserLocationRoleBy(campaignId, userLocationRuleId));
+                    var fakeCampaignDto = GetFakeUserLocationRuleDto();
+                    var content = new StringContent(JsonConvert.SerializeObject(fakeCampaignDto), Encoding.UTF8, "application/json");
 
-                    Assert.True(response.StatusCode == HttpStatusCode.NoContent);
+                    //add user location role
+                    var campaignResponse = await server.CreateClient()
+                        .PostAsync(Post.AddNewuserLocationRule(campaignId), content);
+
+                    if (int.TryParse(campaignResponse.Headers.Location.Segments[6], out int userLocationRuleId))
+                    {
+                        var response = await server.CreateClient()
+                        .DeleteAsync(Delete.UserLocationRoleBy(campaignId, userLocationRuleId));
+
+                        Assert.True(response.StatusCode == HttpStatusCode.NoContent);
+                    }
+
+                    campaignResponse.EnsureSuccessStatusCode();
                 }
-
-                campaignResponse.EnsureSuccessStatusCode();
             }
         }
 
