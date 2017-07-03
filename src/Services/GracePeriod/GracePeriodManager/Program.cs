@@ -14,6 +14,8 @@
     using Microsoft.Extensions.Options;
     using RabbitMQ.Client;
     using Services;
+    using Microsoft.eShopOnContainers.BuildingBlocks.EventBusServiceBus;
+    using Microsoft.Azure.ServiceBus;
 
     public class Program
     {
@@ -58,8 +60,24 @@
             services.AddLogging()
                 .AddOptions()
                 .Configure<ManagerSettings>(Configuration)
-                .AddSingleton<IManagerService, ManagerService>()
-                .AddSingleton<IRabbitMQPersistentConnection>(sp =>
+                .AddSingleton<IManagerService, ManagerService>();
+
+
+            if (Configuration.GetValue<bool>("AzureServiceBusEnabled"))
+            {
+                services.AddSingleton<IServiceBusPersisterConnection>(sp =>
+                {
+                    var settings = sp.GetRequiredService<IOptions<ManagerSettings>>().Value;
+                    var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
+
+                    var serviceBusConnection = new ServiceBusConnectionStringBuilder(settings.EventBusConnection);
+
+                    return new DefaultServiceBusPersisterConnection(serviceBusConnection, logger);
+                });
+            }
+            else
+            {
+                services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
                 {
                     var settings = sp.GetRequiredService<IOptions<ManagerSettings>>().Value;
                     var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
@@ -70,8 +88,9 @@
 
                     return new DefaultRabbitMQPersistentConnection(factory, logger);
                 });
+            }
 
-                RegisterEventBus(services);
+            RegisterEventBus(services);
 
             var container = new ContainerBuilder();
             container.Populate(services);
@@ -87,7 +106,25 @@
 
         private static void RegisterEventBus(IServiceCollection services)
         {
-            services.AddSingleton<IEventBus, EventBusRabbitMQ>();
+            if (Configuration.GetValue<bool>("AzureServiceBusEnabled"))
+            {
+                services.AddSingleton<IEventBus, EventBusServiceBus>(sp =>
+                {
+                    var serviceBusPersisterConnection = sp.GetRequiredService<IServiceBusPersisterConnection>();
+                    var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
+                    var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
+                    var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
+                    var subscriptionClientName = Configuration["SubscriptionClientName"];
+
+                    return new EventBusServiceBus(serviceBusPersisterConnection, logger,
+                        eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
+                });
+
+            }
+            else
+            {
+                services.AddSingleton<IEventBus, EventBusRabbitMQ>();
+            }
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
         }
     }

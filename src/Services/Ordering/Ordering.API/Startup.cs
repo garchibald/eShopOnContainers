@@ -253,7 +253,7 @@
             return Policy.Handle<SqlException>().
                 WaitAndRetryAsync(
                     retryCount: retries,
-                    sleepDurationProvider: retry => TimeSpan.FromSeconds(5),
+                    sleepDurationProvider: retry => TimeSpan.FromSeconds(Math.Pow(2, retry)),
                     onRetry: (exception, timeSpan, retry, ctx) =>
                     {
                         logger.LogTrace($"[{prefix}] Exception {exception.GetType().Name} with message ${exception.Message} detected on attempt {retry} of {retries}");

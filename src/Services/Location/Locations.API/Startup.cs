@@ -78,8 +78,6 @@ namespace Microsoft.eShopOnContainers.Services.Locations.API
                         HostName = Configuration["EventBusConnection"]
                     };
 
-                    //TODO await connnection
-
                     return new DefaultRabbitMQPersistentConnection(factory, logger);
                 });
             }

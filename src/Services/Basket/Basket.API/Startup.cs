@@ -25,7 +25,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-
+using Polly;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBusServiceBus;
 using Microsoft.Azure.ServiceBus;
 
@@ -71,10 +71,17 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             services.AddSingleton<ConnectionMultiplexer>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<BasketSettings>>().Value;
-                ConfigurationOptions configuration = ConfigurationOptions.Parse(settings.ConnectionString, true);           
+                ConfigurationOptions configuration = ConfigurationOptions.Parse(settings.ConnectionString, true);
                 configuration.ResolveDns = true;
 
-                return ConnectionMultiplexer.Connect(configuration);
+                ConnectionMultiplexer multiplexer = null;
+                var policy = CreatePolicy(10, sp.GetRequiredService<ILogger>(), "Basket");
+                policy.Execute(() =>
+                {
+                    multiplexer = ConnectionMultiplexer.Connect(configuration);
+                });
+               
+                return multiplexer;
             });
 
 
@@ -206,6 +213,20 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
             eventBus.Subscribe<ProductPriceChangedIntegrationEvent, ProductPriceChangedIntegrationEventHandler>();
             eventBus.Subscribe<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>();
+        }
+
+
+        private Policy CreatePolicy(int retries, ILogger logger, string prefix)
+        {
+            return Policy.Handle<RedisConnectionException>().
+                WaitAndRetryAsync(
+                    retryCount: retries,
+                    sleepDurationProvider: retry => TimeSpan.FromSeconds(Math.Pow(2, retry)),
+                    onRetry: (exception, timeSpan, retry, ctx) =>
+                    {
+                        logger.LogTrace($"[{prefix}] Exception {exception.GetType().Name} with message ${exception.Message} detected on attempt {retry} of {retries}");
+                    }
+                );
         }
     }
 }
