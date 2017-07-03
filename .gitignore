@@ -259,3 +259,5 @@ pub/
 .eshopdocker_*
 /src/Web/WebMVC/wwwroot/lib
 /src/Web/WebMVC/wwwroot/css/site.min.css
+/cli-windows/nuget.exe
+/cli-windows/runtime.win7-x64.runtime.native.System.Data.SqlClient.sni.4.4.0-beta-25007-02
