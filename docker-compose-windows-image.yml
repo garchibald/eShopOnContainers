@@ -45,8 +45,8 @@ services:
     depends_on:
       - identity.api
 
-#networks:
-#  default:
-#    external:
-#      name: nat
+networks:
+  default:
+    external:
+      name: nat
 

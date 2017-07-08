@@ -25,6 +25,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Data.SqlClient;
+using Polly;
 
 namespace eShopOnContainers.Identity
 {
@@ -51,11 +53,14 @@ namespace eShopOnContainers.Identity
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
-        {            
+        {
 
             // Add framework services.
-            services.AddDbContext<ApplicationDbContext>(options =>
-             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ApplicationDbContext>(options => {
+                {
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                }
+            });
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -83,7 +88,7 @@ namespace eShopOnContainers.Identity
                 }
                 checks.AddSqlCheck("Identity_Db", Configuration.GetConnectionString("DefaultConnection"), TimeSpan.FromMinutes(minutes));
             });
-
+            
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
             services.AddTransient<ILoginService<ApplicationUser>, EFLoginService>();
@@ -106,7 +111,39 @@ namespace eShopOnContainers.Identity
 
             var container = new ContainerBuilder();
             container.Populate(services);
-            return new AutofacServiceProvider(container.Build());
+            var provider = new AutofacServiceProvider(container.Build());
+
+            WaitForSqlAvailabilityAsync(connectionString, provider.GetService<ILoggerFactory>()).Wait();
+
+            return provider;
+        }
+
+        private async Task WaitForSqlAvailabilityAsync(string connection, ILoggerFactory loggerFactory, int retries = 10)
+        {
+            var logger = loggerFactory.CreateLogger(nameof(Startup));
+            var policy = CreatePolicy(retries, logger, nameof(WaitForSqlAvailabilityAsync));
+            await policy.ExecuteAsync(async () =>
+            {
+                // Connect to database without specific database
+                using (var conn = new SqlConnection(string.Join(";", connection.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Where(part => !part.StartsWith("Database")))))
+                {
+                    // Check can open server connection
+                    await conn.OpenAsync();
+                }
+            });
+        }
+
+        private Policy CreatePolicy(int retries, ILogger logger, string prefix)
+        {
+            return Policy.Handle<SqlException>()
+                .WaitAndRetryAsync(
+                    retryCount: retries,
+                    sleepDurationProvider: retry => TimeSpan.FromSeconds(Math.Pow(2, retry)),
+                    onRetry: (exception, timeSpan, retry, ctx) =>
+                    {
+                        logger.LogTrace($"[{prefix}] Exception {exception.GetType().Name} with message ${exception.Message} detected on attempt {retry} of {retries}");
+                    }
+                );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

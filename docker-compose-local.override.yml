@@ -21,6 +21,7 @@ services:
       - EventBusConnection=${ESHOP_AZURE_SERVICE_BUS:-rabbitmq}
     ports:
       - "5103:80"
+    container_name: basket.api
 
   catalog.api:
     environment:
@@ -33,6 +34,7 @@ services:
       - AzureStorageEnabled=False
     ports:
       - "5101:80"
+    container_name: catalog.api
 
   identity.api:
     environment:
@@ -107,10 +109,12 @@ services:
       - ACCEPT_EULA=Y
     ports:
       - "5433:1433"
+    container_name: sql.data
 
   nosql.data:
     ports:
       - "27017:27017"
+    container_name: nosql.data
 
   webstatus:
     environment:
@@ -124,6 +128,7 @@ services:
       - spa=http://webspa/hc
     ports:
       - "5107:80"
+    container_name: webstatus
 
   payment.api:
     environment:

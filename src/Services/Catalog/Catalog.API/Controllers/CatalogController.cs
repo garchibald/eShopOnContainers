@@ -235,9 +235,9 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
             
             items.ForEach(catalogItem =>
             {
-                catalogItem.PictureUri = _settings.AzureStorageEnabled
-                    ? baseUri + catalogItem.PictureFileName
-                    : baseUri + catalogItem.Id;
+                catalogItem.PictureUri = (_settings.AzureStorageEnabled
+                    ? new Uri(new Uri(baseUri, UriKind.RelativeOrAbsolute), new Uri(catalogItem.PictureFileName, UriKind.Relative))
+                    : new Uri(new Uri(baseUri, UriKind.RelativeOrAbsolute), new Uri(catalogItem.Id.ToString(), UriKind.Relative))).ToString();
 
             });
 

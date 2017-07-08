@@ -7,7 +7,6 @@ if [ -z "$path" ]; then
 fi
 
 declare -a projectList=(
-    "$path/Web/WebSPA"
     "$path/Services/Catalog/Catalog.API"
     "$path/Services/Basket/Basket.API"
     "$path/Services/Ordering/Ordering.API"
