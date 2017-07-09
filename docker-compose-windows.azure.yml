@@ -12,8 +12,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80#
       - ConnectionString=basket.data
-      - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105         #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
-      - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
+      - identityUrl=http://identity.api                                             #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
+      - EventBusConnection=rabbitmq
     ports:
       - "5103:80" 
     depends_on:
@@ -23,10 +23,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
-      - PicBaseUrl=http://${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5101/api/v1/pic/   #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105.	  
+      - PicBaseUrl=http://${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5101/api/v1/pic/  #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105.	  
       - ConnectionString=Server=sql.data;Database=Microsoft.eShopOnContainers.Services.CatalogDb;User Id=sa;Password=Pass@word
       - ExternalCatalogBaseUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5101    #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105.	  
-      - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
+      - EventBusConnection=rabbitmq
       - UseCustomizationData=False
       - AzureStorageEnabled=False
     ports:
@@ -65,8 +65,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
       - ConnectionString=Server=sql.data;Database=Microsoft.eShopOnContainers.Services.OrderingDb;User Id=sa;Password=Pass@word
-      - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105            #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
-      - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
+      - identityUrl=http://identity.api                                            #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
+      - EventBusConnection=rabbitmq
     ports:
       - "5102:80"
 
@@ -81,7 +81,7 @@ services:
       - CatalogUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5101/hc
       - OrderingUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5102/hc
       - IdentityUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105/hc     #Local: Use ${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}, if using external IP or DNS name from browser.          
-      - BasketUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5103/hc      
+      - BasketUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5103/hc
     ports:
       - "5104:80"
 
@@ -89,15 +89,16 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
-      - CatalogUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5101
-      - OrderingUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5102
-      - BasketUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5103
-      - IdentityUrl=http:http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105      #Local:  Use 10.0.75.1 in a "Docker for Windows" environment, if using "localhost" from browser. 
+      - CatalogUrl=http://catalog.api
+      - OrderingUrl=http://ordering.api
+      - BasketUrl=http://basket.api
+      - IdentityUrl=http://identity.api                            #Local:  Use 10.0.75.1 in a "Docker for Windows" environment, if using "localhost" from browser. 
                                                                         #Remote: Use ${ESHOP_EXTERNAL_DNS_NAME_OR_IP} if using external IP or DNS name from browser. 
-      - CatalogUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5101/hc
-      - OrderingUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5102/hc
-      - IdentityUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105/hc     #Local: Use ${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}, if using external IP or DNS name from browser.          
-      - BasketUrlHC=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5103/hc   
+      - CallBackUrl=http://localhost:5100
+      - CatalogUrlHC=http://catalog.api/hc
+      - OrderingUrlHC=http://ordering.api/hc
+      - IdentityUrlHC=http://identity.api/hc                            #Local: Use ${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}, if using external IP or DNS name from browser.          
+      - BasketUrlHC=http://basket.api/hc   
     ports:
       - "5100:80"
 
@@ -107,8 +108,8 @@ services:
       - ASPNETCORE_URLS=http://0.0.0.0:80
       - ConnectionString=mongodb://nosql.data
       - Database=LocationsDb
-      - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105      #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
-      - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
+      - identityUrl=http://identity.api                                 #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
+      - EventBusConnection=rabbitmq
     ports:
       - "5109:80"
     depends_on:
@@ -119,10 +120,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
       - ConnectionString=Server=sql.data;Database=Microsoft.eShopOnContainers.Services.MarketingDb;User Id=sa;Password=Pass@word
-      - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
+      - EventBusConnection=rabbitmq
       - MongoConnectionString=nosql.data
       - MongoDatabase=MarketingDb
-      - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105       #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
+      - identityUrl=http://identity.api                                  #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
     ports:
       - "5110:80"
     depends_on:
