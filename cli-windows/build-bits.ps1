@@ -23,7 +23,7 @@ $patchSni = $scriptPath + "\runtime.win7-x64.runtime.native.System.Data.SqlClien
 
 $projectPaths = 
     @{Path="$rootPath\src\Web\WebMVC";Prj="WebMVC.csproj"},
-    @{Path="$rootPath\src\Web\WebSPA";Prj="WebSPA.csproj"},
+#    @{Path="$rootPath\src\Web\WebSPA";Prj="WebSPA.csproj"},
     @{Path="$rootPath\src\Services\Identity\Identity.API";Prj="Identity.API.csproj"},
     @{Path="$rootPath\src\Services\Catalog\Catalog.API";Prj="Catalog.API.csproj"},
     @{Path="$rootPath\src\Services\Ordering\Ordering.API";Prj="Ordering.API.csproj"},

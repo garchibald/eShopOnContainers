@@ -1,0 +1,91 @@
+version: '3'
+
+services:
+  basket.api:
+    image: ${ESHOP_REPOSITORY}eshop/basket.api:${TAG:-latest}   
+    depends_on:
+      - basket.data
+      - identity.api
+    container_name: basket.api
+
+  catalog.api:
+    image: ${ESHOP_REPOSITORY}eshop/catalog.api:${TAG:-latest}   
+    depends_on:
+      - sql.data
+      - rabbitmq
+    container_name: catalog.api
+
+  identity.api:
+    image: ${ESHOP_REPOSITORY}eshop/identity.api:${TAG:-latest}  
+    depends_on:
+      - sql.data
+    container_name: identity.api
+
+  ordering.api:
+    image: ${ESHOP_REPOSITORY}eshop/ordering.api:${TAG:-latest}  
+    depends_on:
+      - sql.data
+      - rabbitmq
+    container_name: ordering.api
+
+  marketing.api:
+    image: ${ESHOP_REPOSITORY}eshop/marketing.api:${TAG:-latest}   
+    depends_on:
+      - sql.data
+      - nosql.data
+      - identity.api
+      - rabbitmq
+    container_name: marketing.api
+
+  webmvc:
+    image: ${ESHOP_REPOSITORY}eshop/webmvc:${TAG:-latest}
+    build:
+      context: ./src/Web/WebMVC
+      dockerfile: Dockerfile    
+    depends_on:
+      - catalog.api
+      - ordering.api
+      - identity.api
+      - basket.api
+      - marketing.api
+    container_name: webmvc
+
+  sql.data:
+    image: microsoft/mssql-server-linux
+    container_name: sql.data
+
+  nosql.data:
+    image: mongo
+    container_name: mongo
+
+  basket.data:
+    image: redis
+    ports:
+      - "6379:6379"
+    container_name: basket.data
+
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - "5672:5672"
+    container_name: rabbitmq
+
+  webstatus:
+    image: ${ESHOP_REPOSITORY}eshop/webstatus:${TAG:-latest}
+    build:
+      context: ./src/Web/WebStatus
+      dockerfile: Dockerfile
+    container_name: webstatus
+
+  payment.api:
+    image: ${ESHOP_REPOSITORY}eshop/payment.api:${TAG:-latest}
+    depends_on:
+      - rabbitmq  
+    container_name: payment.api  
+    
+  locations.api:
+    image: ${ESHOP_REPOSITORY}eshop/locations.api:${TAG:-latest}
+    depends_on:
+      - nosql.data
+      - rabbitmq
+    container_name: locations.api

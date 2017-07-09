@@ -1,0 +1,44 @@
+version: '2.1'
+
+services:
+  rabbitmq:
+    image: rabbitmq
+    build:
+      context: ../images/rabbitmq
+      dockerfile: Dockerfile
+    ports:
+      - 5672:5672
+    container_name: rabbitmq
+
+  sql.data:
+    image: microsoft/mssql-server-windows
+    environment:
+      - SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
+    ports:
+      - "5433:1433"
+    container_name: sql.data
+    
+  basket.data:
+    image: redis
+    build:
+      context: ../images/redis
+      dockerfile: Dockerfile
+    ports:
+      - "6379:6379"
+    container_name: basket.data
+    
+  nosql.data:
+    image: mongodb
+    build:
+      context: ../images/mongodb
+      dockerfile: Dockerfile
+    ports:
+      - "27017:27017"
+    container_name: nosql.data
+
+networks:
+  default:
+    external:
+      name: nat
+

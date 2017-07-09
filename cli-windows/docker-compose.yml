@@ -1,0 +1,45 @@
+version: '2.1'
+
+services:
+  basket.api:
+    image: ${ESHOP_REPOSITORY}eshop/basket.api:${TAG:-latest}
+    depends_on:
+      - identity.api
+    container_name: basket.api
+
+  catalog.api:
+    image: ${ESHOP_REPOSITORY}eshop/catalog.api:${TAG:-latest}
+    container_name: catalog.api
+
+  identity.api:
+    image: ${ESHOP_REPOSITORY}eshop/identity.api:${TAG:-latest}
+    container_name: identity.api
+
+  ordering.api:
+    image: ${ESHOP_REPOSITORY}eshop/ordering.api:${TAG:-latest}
+    container_name: ordering.api
+
+  webmvc:
+    image: ${ESHOP_REPOSITORY}eshop/webmvc:${TAG:-latest}
+    depends_on:
+      - catalog.api
+      - ordering.api
+      - identity.api
+      - basket.api
+    container_name: webmvc
+  
+  locations.api:
+    image: ${ESHOP_REPOSITORY}eshop/locations.api:${TAG:-latest}
+    container_name: locations.api
+
+  marketing.api:
+    image: ${ESHOP_REPOSITORY}eshop/marketing.api:${TAG:-latest}
+    container_name: marketing.api
+    depends_on:
+      - identity.api
+
+networks:
+  default:
+    external:
+      name: nat
+
