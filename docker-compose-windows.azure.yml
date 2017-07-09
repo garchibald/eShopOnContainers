@@ -28,10 +28,9 @@ services:
       - ExternalCatalogBaseUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5101    #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105.	  
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
       - UseCustomizationData=False
+      - AzureStorageEnabled=False
     ports:
       - "5101:80"
-#    depends_on:
-#      - sql.data
    
   basket.data:
     image: redis
@@ -60,8 +59,6 @@ services:
       - MvcClient=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5100              #Local: You need to open your local dev-machine firewall at range 5100-5105.  
     ports:
       - "5105:80"
-#   depends_on:
-#      - sql.data
 
   ordering.api:
     environment:
@@ -72,8 +69,6 @@ services:
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
     ports:
       - "5102:80"
-#    depends_on:
-#      - sql.data
 
   webspa:
     environment:
@@ -110,7 +105,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
-      - ConnectionString=nosql.data
+      - ConnectionString=mongodb://nosql.data
       - Database=LocationsDb
       - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105      #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
@@ -131,5 +126,4 @@ services:
     ports:
       - "5110:80"
     depends_on:
-#      - sql.data
       - nosql.data

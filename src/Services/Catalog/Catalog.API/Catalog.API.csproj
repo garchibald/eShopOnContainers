@@ -25,8 +25,12 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Remove="Setup\Catalogitems - Copy.zip" />
+    <None Remove="runtimes\win7-x64\native\sni.dll" />
     <None Remove="Setup\Catalogitems - Copy.zip" />
     <Compile Include="IntegrationEvents\EventHandling\AnyFutureIntegrationEventHandler.cs.txt" />
+    <Content Include="runtimes\win7-x64\native\sni.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="web.config;">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
@@ -54,6 +58,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="1.1.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
+    <PackageReference Include="runtime.win7-x64.runtime.native.System.Data.SqlClient.sni" Version="4.4.0-beta-25007-02" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.0.0" />
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
   </ItemGroup>
@@ -75,6 +80,9 @@
   <ItemGroup>
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="runtimes\win7-x64\native\sni.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Pics\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

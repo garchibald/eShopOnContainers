@@ -10,4 +10,8 @@ ENV ChocolateyUseWindowsCompression false
 
 RUN @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
 
-RUN choco install -y mongodb 
+RUN choco install -y mongodb --version 3.4.5
+
+RUN mkdir c:\data\db
+
+CMD [ "C:\\Program Files\\MongoDB\\Server\\3.4\\bin\\mongod.exe" ] 

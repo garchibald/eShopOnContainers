@@ -1,4 +1,4 @@
-# docker build --tag redis .
+# # docker build --tag redis .
 
 FROM microsoft/windowsservercore
 
@@ -11,3 +11,5 @@ ENV ChocolateyUseWindowsCompression false
 RUN @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
 
 RUN choco install -y redis-64 
+
+CMD [ "C:\\Users\\All Users\\chocolatey\\lib\\redis-64\\redis-server.exe" ]
