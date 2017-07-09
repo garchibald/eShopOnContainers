@@ -171,9 +171,9 @@
                  .GetAwaiter()
                  .GetResult();
             }
-            catch (MessagingEntityNotFoundException)
+            catch 
             {
-                _logger.LogInformation($"The messaging entity {SubscriptionClient.DefaultRule} Could not be found.");
+                _logger.LogInformation($"The messaging entity {SubscriptionClient.DefaultRule} Could not be found or removed.");
             }
         }
     }

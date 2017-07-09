@@ -206,6 +206,29 @@
                 );
         }
 
+        private EventBusServiceBus WaitForServiceBusAvailability(IServiceBusPersisterConnection serviceBusPersisterConnection, ILogger<EventBusServiceBus> logger, IEventBusSubscriptionsManager eventBusSubcriptionsManager, string subscriptionClientName, ILifetimeScope iLifetimeScope, int retries = 100)
+        {
+            var policy = CreateServiceBusPolicy(retries, logger, nameof(WaitForServiceBusAvailability));
+            return policy.Execute(() =>
+            {
+                return new EventBusServiceBus(serviceBusPersisterConnection, logger,
+                        eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
+            });
+        }
+
+        private Policy CreateServiceBusPolicy(int retries, ILogger logger, string prefix)
+        {
+            return Policy.Handle<ServiceBusCommunicationException>().
+                WaitAndRetry(
+                    retryCount: retries,
+                    sleepDurationProvider: retry => TimeSpan.FromSeconds(1),
+                    onRetry: (exception, timeSpan, retry, ctx) =>
+                    {
+                        logger.LogTrace($"[{prefix}] Exception {exception.GetType().Name} with message ${exception.Message} detected on attempt {retry} of {retries}");
+                    }
+                );
+        }
+
         private void RegisterEventBus(IServiceCollection services)
         {
             if (Configuration.GetValue<bool>("AzureServiceBusEnabled"))
@@ -218,8 +241,11 @@
                     var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
                     var subscriptionClientName = Configuration["SubscriptionClientName"];
 
-                    return new EventBusServiceBus(serviceBusPersisterConnection, logger,
-                        eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
+                    var sb =  WaitForServiceBusAvailability(serviceBusPersisterConnection, logger, eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
+
+                    logger.LogTrace("Created ServiceBusConnection");
+
+                    return sb;
                 });
                 
             }

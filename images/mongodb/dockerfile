@@ -1,0 +1,13 @@
+# docker build --tag mongodb .
+
+FROM microsoft/windowsservercore
+
+####### PORTS ########## 
+EXPOSE 27017 
+
+ENV chocolateyVersion 0.9.9.12
+ENV ChocolateyUseWindowsCompression false
+
+RUN @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+
+RUN choco install -y mongodb 

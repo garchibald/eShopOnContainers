@@ -1,7 +1,9 @@
 Param([string] $rootPath,
 [bool] $azure = $True,
 [bool] $images = $True,
-[bool] $build = $false)
+[bool] $build = $false,
+[bool] $useEnvironment = $true
+)
 $scriptPath = Split-Path $script:MyInvocation.MyCommand.Path
 if ([string]::IsNullOrEmpty($rootPath)) {
     $rootPath = "$scriptPath\.."
@@ -58,10 +60,6 @@ if ( $azure ) {
 		Write-Host "NOTE: Missing environment variable ESHOP_AZURE_DB_PREFIX" -ForegroundColor Yellow
 	}
 
-	if ( $errors ) {
-		return
-	}
-
 	$overrideFile = $rootPath + "\docker-compose-windows.azure.yml"
 }
 
@@ -69,14 +67,11 @@ if ( $images ) {
 	$composeFile = $rootPath + "\docker-compose-windows-image.yml"
 }
 
-if ( Test-Path env:TAG ) {
-	# Use defined value
-} else {
-	$env:TAG=dev
-}
-
 Write-Host "Using Tag $env:TAG"
 pushd ..
+
+Write-Host "Compose $composeFile"
+Write-Host "Compose $overrideFile"
 
 docker-compose -f $composeFile -f $overrideFile  up --force-recreate
 

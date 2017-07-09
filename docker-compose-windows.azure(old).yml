@@ -11,69 +11,79 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80#
-      - ConnectionString=basket.data
+      - ConnectionString=${ESHOP_REDIS_CONNECTION}
       - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105         #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
+#      - AzureServiceBusEnabled=true
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
     ports:
-      - "5103:80" 
-    depends_on:
-      - basket.data    
+      - "5103:80"
+#    depends_on:
+#      - rabbitmq
+      
+#  rabbitmq:
+#    image: rabbitmq:latest
+#    container_name: rabbitmq      
 
   catalog.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
       - PicBaseUrl=http://${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5101/api/v1/pic/   #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105.	  
+#      - ConnectionString=${ESHOP_AZUREDB_CONNECTION};Database=${ESHOP_AZURE_DB_PREFIX}CatalogDb
       - ConnectionString=Server=sql.data;Database=Microsoft.eShopOnContainers.Services.CatalogDb;User Id=sa;Password=Pass@word
       - ExternalCatalogBaseUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5101    #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105.	  
+#      - AzureServiceBusEnabled=true
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
+#      - EventBusConnection=rabbitmq
       - UseCustomizationData=False
     ports:
       - "5101:80"
-#    depends_on:
-#      - sql.data
-   
+    depends_on:
+      - sql.data
+
+  sql.data:
+    image: microsoft/mssql-server-windows
+    environment:
+      - SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
+    ports:
+      - "5433:1433"
+    container_name: sql.data
+
+
   basket.data:
-    image: redis
-    build:
-      context: ./images/redis
-      dockerfile: Dockerfile
+    image: eshop/redis-win
     ports:
       - "6379:6379"
     container_name: basket.data
-    
-  nosql.data:
-    image: mongodb
-    build:
-      context: ./images/mongodb
-      dockerfile: Dockerfile
-    ports:
-      - "27017:27017"
-    container_name: nosql.data
 
   identity.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
       - SpaClient=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5104
+#      - ConnectionStrings__DefaultConnection=${ESHOP_AZUREDB_CONNECTION};Database=${ESHOP_AZURE_DB_PREFIX}IdentityDb
       - ConnectionStrings__DefaultConnection=Server=sql.data;Database=Microsoft.eShopOnContainers.Services.IdentityDb;User Id=sa;Password=Pass@word
       - MvcClient=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5100              #Local: You need to open your local dev-machine firewall at range 5100-5105.  
     ports:
       - "5105:80"
-#   depends_on:
-#      - sql.data
+    depends_on:
+      - sql.data
 
   ordering.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
+#      - ConnectionString=${ESHOP_AZUREDB_CONNECTION};Database=${ESHOP_AZURE_DB_PREFIX}OrderingDb
       - ConnectionString=Server=sql.data;Database=Microsoft.eShopOnContainers.Services.OrderingDb;User Id=sa;Password=Pass@word
       - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105            #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
+#      - AzureServiceBusEnabled=true
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
+      - EventBusConnection=rabbitmq
     ports:
       - "5102:80"
-#    depends_on:
-#      - sql.data
+    depends_on:
+      - sql.data
 
   webspa:
     environment:
@@ -110,26 +120,26 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
-      - ConnectionString=nosql.data
+      - ConnectionString=${AZURE_COSMOSDB}
       - Database=LocationsDb
       - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105      #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
+#      - AzureServiceBusEnabled=true
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
     ports:
       - "5109:80"
-    depends_on:
-      - nosql.data
 
   marketing.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://0.0.0.0:80
+#      - ConnectionString=${ESHOP_AZUREDB_CONNECTION};Database=${ESHOP_AZURE_DB_PREFIX}MarketingDb
       - ConnectionString=Server=sql.data;Database=Microsoft.eShopOnContainers.Services.MarketingDb;User Id=sa;Password=Pass@word
+#      - AzureServiceBusEnabled=true
       - EventBusConnection=${ESHOP_EVENT_BUS_CONNECTION}
-      - MongoConnectionString=nosql.data
+      - MongoConnectionString=${AZURE_COSMOSDB}
       - MongoDatabase=MarketingDb
       - identityUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105       #Local: You need to open your local dev-machine firewall at range 5100-5105.  at range 5100-5105. 
     ports:
       - "5110:80"
     depends_on:
-#      - sql.data
-      - nosql.data
+      - sql.data

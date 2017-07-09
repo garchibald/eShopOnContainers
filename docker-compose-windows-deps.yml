@@ -1,0 +1,26 @@
+version: '2.1'
+
+services:
+  rabbitmq:
+    image: rabbitmq
+    build:
+      context: ./images/rabbitmq
+      dockerfile: Dockerfile
+    ports:
+      - 5672:5672
+    container_name: rabbitmq
+
+  sql.data:
+    image: microsoft/mssql-server-windows
+    environment:
+      - SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
+    ports:
+      - "5433:1433"
+    container_name: sql.data
+
+networks:
+  default:
+    external:
+      name: nat
+
