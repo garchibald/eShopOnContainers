@@ -2,7 +2,7 @@ version: '2.1'
 
 services:
   rabbitmq:
-    image: rabbitmq
+    image: ${REPOSITORY_COMMON}rabbitmq
     build:
       context: ../images/rabbitmq
       dockerfile: Dockerfile
@@ -20,7 +20,7 @@ services:
     container_name: sql.data
     
   basket.data:
-    image: redis
+    image: ${REPOSITORY_COMMON}redis
     build:
       context: ../images/redis
       dockerfile: Dockerfile
@@ -29,7 +29,7 @@ services:
     container_name: basket.data
     
   nosql.data:
-    image: mongodb
+    image: ${REPOSITORY_COMMON}mongodb
     build:
       context: ../images/mongodb
       dockerfile: Dockerfile
